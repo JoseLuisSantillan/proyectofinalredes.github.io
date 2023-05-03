@@ -243,23 +243,21 @@ class FileManager():
         size_str = f"{size:.1f} {unit}"
         return size_str
     
-    def save_file_on_directory(self):
-        # Maybe here we can control the save of a file
-        print('')
 ```
 
 # Conclusiones
 
-1.  This is an ordered list following a header.
-2.  This is an ordered list following a header.
-3.  This is an ordered list following a header.
+
+1.  El proyecto logró su objetivo de implementar una aplicación web tipo Dropbox utilizando Python y sockets de red.
+2.  La interfaz de usuario web permitió a los usuarios cargar y descargar archivos de manera eficiente y fácil.
+3.  Es importante tener en cuenta que la aplicación solo funcionó adecuadamente con archivos en formato utf-8. Se recomienda explorar opciones para ampliar la compatibilidad con otros formatos de archivo.
 
 
-### Small image
+<!-- ### Small image
 
 ![Octocat](https://github.githubassets.com/images/icons/emoji/octocat.png)
 
 ### Large image
 
-![Branching](https://guides.github.com/activities/hello-world/branching.png)
+![Branching](https://guides.github.com/activities/hello-world/branching.png) -->
 
