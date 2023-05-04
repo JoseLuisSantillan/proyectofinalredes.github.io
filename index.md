@@ -40,47 +40,81 @@ Un punto a destacar es que en el proyecto utilizamos en su mayoría código hech
 import socket
 import threading
 from HTTPRequestHandler import HTTPRequestHandler
+import re
 
-HEADER=4096
-PORT=5053
-SERVER=socket.gethostbyname(socket.gethostname())
-ADDR=(SERVER,PORT)
-FORMAT='utf-8'
-DISCONNECT_MESSAGE="!DISCONNECT"
+HEADER = 4096
+PORT = 5053
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER, PORT)
+FORMAT = 'UTF-8'
+DISCONNECT_MESSAGE = "!DISCONNECT"
+
 
 def handle_client(conn, addr):
-    
+
     print(f"[NEW CONNECTION]{addr} connected.")
     request = b''
     while True:
+        # recibimos un mensaje de longitud maxima de 64 bytes
+        # y lo decodificamos en formato UTF-8
         request = conn.recv(HEADER)
         if not request:
             break
         httpd = HTTPRequestHandler(request, conn)
         response = httpd.handle_request()
-        conn.sendall(response.encode(FORMAT))
-       
+        # Enviamos la respuesta HTTP al cliente
+        # conn.sendall(response.encode(FORMAT))
+        if (type(response) is str):
+            response = response.encode(FORMAT)
+        conn.sendall(response)
+
     conn.close()
 
+
 def start():
-    
+
     server.listen()
     print(f"[LISTENING] Server is listening on {SERVER}")
     while True:
+        # esperamos una conexion y cuando llegue la aceptamos
         conn, addr = server.accept()
-        thread = threading.Thread(target = handle_client, args = (conn, addr))
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
         print(f"[ACTIVE CONNECTIONS]= {threading.active_count()-1}")
 
 
 if __name__ == "__main__":
-    server=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # creamos la instancia Socket
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # asignamos la direccion IP y el puerto al socket
     server.bind(ADDR)
     print("Server is starting...")
     start()
 
 ```
 Se realizó un servidor web básico que escucha las solicitudes HTTP en un puerto específico. La función principal del servidor es crear un socket y esperar las solicitudes entrantes. Cuando se recibe una solicitud, se crea un nuevo hilo para manejar la solicitud y se envía una respuesta al cliente. El servidor se ejecuta en un bucle infinito.
+El método más importante es el 'handle_client()' que ejecuta un bucle en el que recibe los datos de la request y si se recibe algo vacio,se entiende que se cerró la conexión, por lo que sale del bucle. Luego se utiliza el método 'handle_request()' de HTTPRequestHandler para generar la respuesta correcta y despues enviarla al cliente. Antes de enviar la respuesta se verifica si es de tipo string se codifica en Unicode, sino se la envia en bytes.
+```py
+def handle_client(conn, addr):
+
+    print(f"[NEW CONNECTION]{addr} connected.")
+    request = b''
+    while True:
+        # recibimos un mensaje de longitud maxima de 64 bytes
+        # y lo decodificamos en formato UTF-8
+        request = conn.recv(HEADER)
+        if not request:
+            break
+        httpd = HTTPRequestHandler(request, conn)
+        response = httpd.handle_request()
+        # Enviamos la respuesta HTTP al cliente
+        # conn.sendall(response.encode(FORMAT))
+        if (type(response) is str):
+            response = response.encode(FORMAT)
+        conn.sendall(response)
+
+    conn.close()
+```
 
 # HTTPRequestHandler
 
@@ -151,17 +185,41 @@ def handle_request(self):
     return response
 ```
 
-- El método 'do_GET()' se encarga de manejar las solicitudes GET. Esta función comprueba si la ruta solicitada en la solicitud es la raíz del servidor (ruta "/"). Si es así, abre el archivo "index.html" y lee su contenido con el objeto open y lo almacena en la variable html. Si no es así, se abre el archivo solicitado y se lee su contenido. El contenido del archivo se envía al cliente como una respuesta HTTP. Luego crea una respuesta HTTP con un código 200, establece el tipo de contenido y la longitud. 
+- El método 'do_GET()' se encarga de manejar las solicitudes GET. Esta función comprueba si la ruta solicitada en la solicitud es la raíz del servidor (ruta "/"). Si es así, abre el archivo "index.html" y lee su contenido con el objeto open y lo almacena en la variable html. Si no es la raíz del servidor, se busca el archivo solicitado y se comprueba si existe.  Si existe, se lee su contenido y se escribe en un archivo en binario binario. Luego el archivo en binario se envía al cliente dentro de una respuesta HTTP con código 200 especificando el tipo que tiene. Si el archivo no existe se envia una respuesta HTTP con un código 404 Not found. 
 
 ```py
-def do_GET(self, headers):
-    if headers['Path'] == '/':
-        with open("index.html", "r", encoding='utf-8') as f:
-            html = HTMLPreprocessing(f.read()).get_processed_html()
-        response = ('HTTP/1.1 200 OK\r\n'
-                    + 'Content-Type: text/html\r\n'
-                    + 'Content-Length: {}\r\n'.format(len(html))
-                    + '\r\n' + html)
+ def do_GET(self, path):
+        print('Path: ' + path)
+        if path == '/':
+            with open("index.html", "r", encoding=self.FORMAT) as f:
+                html = HTMLPreprocessing(f.read()).get_processed_html()
+            response = ('HTTP/1.1 200 OK\r\n'
+                        + 'Content-Type: text/html\r\n'
+                        + 'Content-Length: {}\r\n'.format(len(html))
+                        + '\r\n' + html)
+        else:
+            fileName = unquote(path[1:])
+            fileName = self.saveFolder + fileName
+            print(fileName)
+            if exists(fileName):
+                with open(fileName, 'rb') as file:
+                    binary_file = file.read()
+                    print(type(binary_file))
+                    print('Lenght file: {}'.format(getsize(fileName)))
+                    print('Lenght binary: {}'.format(len(binary_file)))
+                    response = ('HTTP/1.1 200 OK\r\n'
+                                + 'Content-Type: application/octet-stream\r\n'
+                                + 'Content-Length: {}\r\n'.format(len(binary_file))
+                                + '\r\n')
+                    response = bytes(response, 'UTF-8') + binary_file
+                    # print(response.decode('UTF-8'))
+                    file.close()
+            else:
+                response = ('HTTP/1.1 404 NOT FOUND\r\n'
+                            + 'Content-Type: text/html\r\n'
+                            + 'Content-Length: {}\r\n'.format(len('Not found ' + fileName))
+                            + '\r\n' + 'Not found ' + fileName)
+
         return response
 ```
 
@@ -280,5 +338,5 @@ def save_file_on_directory(self, file_name, file_data, file_type):
 1. El manejo de solicitudes HTTP requiere la manipulación de headers para llevar a cabo una respuesta adecuada. Los headers llevan información importante sobre la solicitud del cliente como: método, protocolo, ruta, tamaño del contenido, etc.   
 2. La carga y descarga de archivos requieren de una codificación y decodificación para que estos puedan ser manejados dentro de las solicitudes y respuestas HTTP. Archivos de texto plano se pueden decodificar en UTF-8, pero archivos como PDF o imágenes requieren de una codificación binaria para guardarse en el servidor y posteriormente descargarse.
 3. El tamaño de las solicitudes del cliente tienen un tamaño limitado (particularmente de 4096 bytes). Si el usuario hace una solicitud que requiere enviar un archivo de gran tamaño será necesario recibir todos los paquetes HTTP que componen todo el contenido del archivo. Esta situación se puede manejar mediante el análisis de los headers HTTP, en especial del Content-Length.
-4. La descarga de los archivos se realiza 
+4. La descarga de los archivos se realiza con la sentencia GET y se envia los datos en un archivo binario. Algo importante es que solo se está enviando el archivo solicitado. Si se utilizaría la etiqueta <a > en el HTML, se cargaría la página con todos los datos y desde esta página se descarga un archivo. Esto sería un problema si se tiene varios archivos de gran tamaño ya que la página iría creciendo con los datos de los archivos que contiene y esto no es eficiente. 
 
