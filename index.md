@@ -240,12 +240,13 @@ def encode_file_content(self, file_path):
     return encoded_content
 ```
 - El método de 'get_files_on_directory()' devuelve una lista de los nombre de los archivos en el directorio especificado. 
+
 ```py
 def get_files_on_directory(self):
     return [filename for filename in os.listdir(self.directory)]
-
 ```
 - El método 'get_file_size_str' devuelve el tamaño del archivo en bytes, kilobytes o megabytes, dependiendo de su tamaño.
+
 ```py
  def get_file_size_str(self, size_bytes):
     units = ('B', 'KB', 'MB', 'GB')
@@ -277,7 +278,7 @@ def save_file_on_directory(self, file_name, file_data, file_type):
 # Conclusiones
 
 1. El manejo de solicitudes HTTP requiere la manipulación de headers para llevar a cabo una respuesta adecuada. Los headers llevan información importante sobre la solicitud del cliente como: método, protocolo, ruta, tamaño del contenido, etc.   
-2. La carga y descarga de archivos requieren de una codificación y decodificación para que estos puedan ser manejados dentro de las solicitudes y respuestas HTTP. Archivos de texto plano se pueden codificar en UTF-8, pero archivos como PDF o imágenes requieren de una codificación binaria para guardarse en el servidor y posteriormente descargarse.
+2. La carga y descarga de archivos requieren de una codificación y decodificación para que estos puedan ser manejados dentro de las solicitudes y respuestas HTTP. Archivos de texto plano se pueden decodificar en UTF-8, pero archivos como PDF o imágenes requieren de una codificación binaria para guardarse en el servidor y posteriormente descargarse.
 3. El tamaño de las solicitudes del cliente tienen un tamaño limitado (particularmente de 4096 bytes). Si el usuario hace una solicitud que requiere enviar un archivo de gran tamaño será necesario recibir todos los paquetes HTTP que componen todo el contenido del archivo. Esta situación se puede manejar mediante el análisis de los headers HTTP, en especial del Content-Length.
 4. La descarga de los archivos se realiza 
 
