@@ -8,7 +8,7 @@
 
 #### Integrantes:
 - Esteban Alvarado
-- Cristopher Becerra
+- Cristopher Becerra (203991)
 - José Contreras
 - Kristian Mendoza
 - José Luis Santillán
@@ -94,7 +94,6 @@ La clase se encarga de manejar las solicitudes HTTP que llegan al servidor.
         content_length -= len(chunk)
         request += chunk
     return request
-
 ```
 
 - El método 'handle_file_request()'  maneja las solicitudes de carga de archivos. Se extrae el nombre del archivo, el tipo de contenido, y los datos relacionados. Se devuelve una tupla de los anteriores campos mencionados.
