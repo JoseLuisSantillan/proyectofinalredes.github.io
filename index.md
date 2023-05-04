@@ -97,6 +97,7 @@ La clase se encarga de manejar las solicitudes HTTP que llegan al servidor.
 ```
 
 - El método 'handle_file_request()'  maneja las solicitudes de carga de archivos. Se extrae el nombre del archivo, el tipo de contenido, y los datos relacionados. Se devuelve una tupla de los anteriores campos mencionados.
+
 ```py
 def handle_file_request(self, request, headers):
     boundaries = '--' + \
@@ -135,7 +136,8 @@ def handle_file_request(self, request, headers):
 ```
 
 - El método 'handle_request()' se manejan los diferentes tipos de request que pueden recibirse en el el servidor. Se comparan los Metodos que están guardados en el header con un GET y POST para decidir qué se debe hacer y que se responde al cliente.
-``` py
+
+```py
 def handle_request(self):
     headers, request = self.parse_request(self.request)
     response = ""
@@ -147,11 +149,10 @@ def handle_request(self):
         response = self.do_POST(headers, request)
 
     return response
-
-
 ```
 
 - El método 'do_GET()' se encarga de manejar las solicitudes GET. Esta función comprueba si la ruta solicitada en la solicitud es la raíz del servidor (ruta "/"). Si es así, abre el archivo "index.html" y lee su contenido con el objeto open y lo almacena en la variable html. Si no es así, se abre el archivo solicitado y se lee su contenido. El contenido del archivo se envía al cliente como una respuesta HTTP. Luego crea una respuesta HTTP con un código 200, establece el tipo de contenido y la longitud. 
+
 ```py
 def do_GET(self, headers):
     if headers['Path'] == '/':
@@ -178,7 +179,7 @@ def do_POST(self, headers, request):
 ```
 
 # HTMLPreprocessing
-``` py
+```py
 class HTMLPreprocessing:
     
     def __init__(self, html):
@@ -278,5 +279,5 @@ def save_file_on_directory(self, file_name, file_data, file_type):
 1. El manejo de solicitudes HTTP requiere la manipulación de headers para llevar a cabo una respuesta adecuada. Los headers llevan información importante sobre la solicitud del cliente como: método, protocolo, ruta, tamaño del contenido, etc.   
 2. La carga y descarga de archivos requieren de una codificación y decodificación para que estos puedan ser manejados dentro de las solicitudes y respuestas HTTP. Archivos de texto plano se pueden codificar en UTF-8, pero archivos como PDF o imágenes requieren de una codificación binaria para guardarse en el servidor y posteriormente descargarse.
 3. El tamaño de las solicitudes del cliente tienen un tamaño limitado (particularmente de 4096 bytes). Si el usuario hace una solicitud que requiere enviar un archivo de gran tamaño será necesario recibir todos los paquetes HTTP que componen todo el contenido del archivo. Esta situación se puede manejar mediante el análisis de los headers HTTP, en especial del Content-Length.
-3. La descarga de los archivos se realiza 
+4. La descarga de los archivos se realiza 
 
